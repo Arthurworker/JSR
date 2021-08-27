@@ -11,6 +11,8 @@ addpath('lib')
 
 load('CTSR.mat');
 
+[pc, score, latent] = pca(X_tr');
+
 Y     = label_matrix(train_labels_tsr')';
 W    = (X_tr'*X_tr + 50 * eye(size(X_tr'*X_tr)))^(-1)*X_tr'*Y;
 X_tr = X_tr * W;
@@ -21,10 +23,16 @@ beta = .001;
 lambda  = 1;
 
 S_tr    = NormalizeFea(S_tr);
-W       = JSR(X_tr', S_tr', alpha, beta, lambda)';
+
+
+P       = pc(:, 1:51);
+
+W      = JSR(X_tr', S_tr', P, alpha, beta, lambda);
+V       = JSRV(X_tr', S_tr', beta, lambda)';
 
 %%%%% Testing %%%%%
-dist    =  1 - zscore(pdist2(X_te, (S_te_pro * W'), 'cosine')) ;
+
+dist    =  1 - zscore(pdist2(X_te, (S_te_pro * W), 'cosine')) ;
 dist    = zscore(dist);
 HITK    = 1;
 Y_hit5  = zeros(size(dist,1),HITK);
@@ -41,7 +49,7 @@ for i  = 1:size(dist,1)
 end
 zsl_accuracy = n/size(dist,1);
 sv_acc = zsl_accuracy*100;
-fprintf('\n CTSR ZSL accuracy: %.4f%%\n', sv_acc);
+fprintf('\n GTSR ZSL accuracy: %.4f%%\n', sv_acc);
 
             
             
